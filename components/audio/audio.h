@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "book_init.h"
+#include "esp_log.h"
 
 class Audio
 {
@@ -33,18 +34,18 @@ public:
     ~Audio();
 
     void init();
-    void write(const uint8_t *data);
-    void query(uint8_t object);
-    void setPalyMode(uint8_t type);
+    void write(const uint8_t *data) const;
+    void query(uint8_t object) const;
+    void setPalyMode(uint8_t type) const;
     void pathPlay(const char *path);
-    void start();
-    void stop();
-    void pause();
-    void next();
-    void previous();
+    void start() const;
+    void stop() const;
+    void pause() const;
+    void next() const;
+    void previous() const;
     void setVolume(uint8_t volume);
 
-    uint8_t getVolume();
+    uint8_t getVolume() const;
     uint8_t improveVolume();
     uint8_t reduceVolume();
 };

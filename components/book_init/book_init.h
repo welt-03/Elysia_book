@@ -1,6 +1,11 @@
 #ifndef _BOOK_INIT_H
 #define _BOOK_INIT_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "driver/dac.h"
@@ -32,5 +37,11 @@
 
 #define ADC_IN_PIN GPIO_NUM_35
 #define WS2812_PIN GPIO_NUM_5
+
+    void book_init();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

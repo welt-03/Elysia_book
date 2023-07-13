@@ -1,5 +1,7 @@
 #include "audio.h"
 
+const char *LOG_TAG = "LOG";
+
 uint8_t calculateADD8Check(const uint8_t *data, int length)
 {
     uint8_t checksum = 0;
@@ -30,19 +32,20 @@ void Audio::init()
     this->write(toSDcard_cmd);
     this->write(volumeSet_cmd);
     this->write(singlePlay_cmd);
+    ESP_LOGI(LOG_TAG, "HELLO WORLD");
 }
 
-void Audio::write(const uint8_t *data)
+void Audio::write(const uint8_t *data) const
 {
-    int length = sizeof(data) / sizeof(data[0]);
-    uart_write_bytes(_port, data, length);
+    //    int length = sizeof(data) / sizeof(data[0]);
+    uart_write_bytes(_port, data, strlen((const char *)data));
 }
 
 /*object:
-0-所有文件数量
-1-当前目录下文件数量
-2-当前文件名*/
-void Audio::query(uint8_t object)
+ 0-所有文件数量
+ 1-当前目录下文件数量
+ 2-当前文件名*/
+void Audio::query(uint8_t object) const
 {
     if (object == 0)
         this->write(allfileNumQuery_cmd);
@@ -52,10 +55,10 @@ void Audio::query(uint8_t object)
         this->write(fileNameQuery_cmd);
 }
 /*type:
-0-单曲播放
-1-随机播放
-2-循环播放*/
-void Audio::setPalyMode(uint8_t type)
+ 0-单曲播放
+ 1-随机播放
+ 2-循环播放*/
+void Audio::setPalyMode(uint8_t type) const
 {
     if (type == 0)
         this->write(singlePlay_cmd);
@@ -67,7 +70,7 @@ void Audio::setPalyMode(uint8_t type)
 // 路径播放
 void Audio::pathPlay(const char *path)
 {
-    int length = sizeof(path) / sizeof(path[0]);
+    int length = strlen(path);
     uint8_t cmd[length + 5];
 
     cmd[0] = 0xAA;
@@ -85,27 +88,27 @@ void Audio::pathPlay(const char *path)
     this->write(cmd);
 }
 // 开始
-void Audio::start()
+void Audio::start() const
 {
     this->write(startPlay_cmd);
 }
 // 停止
-void Audio::stop()
+void Audio::stop() const
 {
     this->write(stopPlay_cmd);
 }
 // 暂停
-void Audio::pause()
+void Audio::pause() const
 {
     this->write(pausePlay_cmd);
 }
 // 下一曲
-void Audio::next()
+void Audio::next() const
 {
     this->write(nextPlay_cmd);
 }
 // 上一曲
-void Audio::previous()
+void Audio::previous() const
 {
     this->write(previous_cmd);
 }
@@ -115,7 +118,7 @@ void Audio::setVolume(uint8_t volume)
     _volume = volume;
 }
 // 获取音量
-uint8_t Audio::getVolume()
+uint8_t Audio::getVolume() const
 {
     return _volume;
 }

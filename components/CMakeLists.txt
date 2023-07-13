@@ -1,12 +1,18 @@
-# 路径
-file(GLOB_RECURSE source "book_init/*.c" "audio/*.cpp")
 
-# 文件夹
+set(scrs
+        "."
+        "book_init/book_init.c"
+        "audio/audio.cpp"
+)
+
 set(include_dirs
-    book_init
-    audio)
+        "."
+        "book_init"
+        "audio"
+)
 
 # 配置组件
-idf_component_register( SRCS ${source}
-                        INCLUDE_DIRS ${include_dirs}
-                        REQUIRES "driver")
+idf_component_register( SRCS "${scrs}"
+                        INCLUDE_DIRS "${include_dirs}"
+                        REQUIRES "driver"
+)
