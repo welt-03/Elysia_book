@@ -14,6 +14,7 @@ private:
     uint8_t _volume;
     uart_port_t _port;
 
+    const char *LOG_TAG = "Audio";
     const uint8_t fileNameQuery_cmd[4] = {0xAA, 0x1E, 0x00, 0xC8};
     const uint8_t fileNumQuery_cmd[4] = {0xAA, 0x12, 0x00, 0xBC};
     const uint8_t allfileNumQuery_cmd[4] = {0xAA, 0x0C, 0x00, 0xB6};
@@ -37,7 +38,7 @@ public:
     void write(const uint8_t *data) const;
     void query(uint8_t object) const;
     void setPalyMode(uint8_t type) const;
-    void pathPlay(const char *path);
+    void pathPlay(const char *path) const;
     void start() const;
     void stop() const;
     void pause() const;
@@ -45,6 +46,7 @@ public:
     void previous() const;
     void setVolume(uint8_t volume);
 
+    uint8_t getADD8Check(const uint8_t *data, int length) const;
     uint8_t getVolume() const;
     uint8_t improveVolume();
     uint8_t reduceVolume();

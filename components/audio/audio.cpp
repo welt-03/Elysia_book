@@ -1,17 +1,5 @@
 #include "audio.h"
 
-const char *LOG_TAG = "LOG";
-
-uint8_t calculateADD8Check(const uint8_t *data, int length)
-{
-    uint8_t checksum = 0;
-    for (int i = 0; i < length; i++)
-    {
-        checksum += data[i];
-    }
-    return checksum;
-}
-
 Audio::Audio()
 {
     _port = UART_NUM_1;
@@ -25,26 +13,52 @@ Audio::Audio(uart_port_t port)
 Audio::~Audio()
 {
 }
-
+/**
+ * @brief Audio 初始化
+ *
+ */
 void Audio::init()
 {
     _volume = 30;
     this->write(toSDcard_cmd);
     this->write(volumeSet_cmd);
     this->write(singlePlay_cmd);
-    ESP_LOGI(LOG_TAG, "HELLO WORLD");
+    ESP_LOGI(LOG_TAG, "Initialization complete.");
 }
-
+/**
+ * @brief 通过串口向JQ8900S发送命令
+ *
+ * @param data
+ */
 void Audio::write(const uint8_t *data) const
 {
-    //    int length = sizeof(data) / sizeof(data[0]);
     uart_write_bytes(_port, data, strlen((const char *)data));
 }
+/**
+ * @brief 计算ADD8检验和
+ *
+ * @param data
+ * @param length
+ * @return uint8_t
+ */
+uint8_t Audio::getADD8Check(const uint8_t *data, int length) const
+{
+    uint8_t checksum = 0;
+    for (int i = 0; i < length; i++)
+    {
+        checksum += data[i];
+    }
+    return checksum;
+}
 
-/*object:
- 0-所有文件数量
- 1-当前目录下文件数量
- 2-当前文件名*/
+/**
+ * @brief 根据object发送查询命令
+ *
+ * @param object
+ * (0)所有文件数量
+ * (1)当前目录文件数量
+ * (2)当前文件名
+ */
 void Audio::query(uint8_t object) const
 {
     if (object == 0)
@@ -54,10 +68,14 @@ void Audio::query(uint8_t object) const
     else if (object == 2)
         this->write(fileNameQuery_cmd);
 }
-/*type:
- 0-单曲播放
- 1-随机播放
- 2-循环播放*/
+/**
+ * @brief 根据type设置播放模式
+ *
+ * @param type
+ *(0)单曲播放
+ *(1)随机播放
+ *(2)循环播放
+ */
 void Audio::setPalyMode(uint8_t type) const
 {
     if (type == 0)
@@ -68,7 +86,7 @@ void Audio::setPalyMode(uint8_t type) const
         this->write(loopPlay_cmd);
 }
 // 路径播放
-void Audio::pathPlay(const char *path)
+void Audio::pathPlay(const char *path) const
 {
     int length = strlen(path);
     uint8_t cmd[length + 5];
@@ -83,7 +101,7 @@ void Audio::pathPlay(const char *path)
         cmd[i + 4] = path[i];
     }
 
-    cmd[length + 4] = calculateADD8Check(cmd, length + 4);
+    cmd[length + 4] = getADD8Check(cmd, length + 4);
 
     this->write(cmd);
 }
