@@ -7,10 +7,10 @@
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "book_init.h"
+#include "book_config.h"
 #include "audio.h"
 
-const char *LOG_TAG = "LOG";
+const char *LOG_TAG = "main";
 
 Audio audio(UART_NUM_1);
 

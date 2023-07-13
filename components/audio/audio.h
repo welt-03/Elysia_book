@@ -5,7 +5,7 @@
 #include "string.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
-#include "book_init.h"
+#include "book_config.h"
 #include "esp_log.h"
 
 class Audio
@@ -14,7 +14,6 @@ private:
     uint8_t _volume;
     uart_port_t _port;
 
-    const char *LOG_TAG = "Audio";
     const uint8_t fileNameQuery_cmd[4] = {0xAA, 0x1E, 0x00, 0xC8};
     const uint8_t fileNumQuery_cmd[4] = {0xAA, 0x12, 0x00, 0xBC};
     const uint8_t allfileNumQuery_cmd[4] = {0xAA, 0x0C, 0x00, 0xB6};

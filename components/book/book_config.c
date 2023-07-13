@@ -1,4 +1,4 @@
-#include "book_init.h"
+#include "book_config.h"
 
 void book_init()
 {
@@ -38,16 +38,4 @@ void book_init()
     gpio_set_level(ASW_IN0, LOW);
     gpio_set_level(ASW_IN1, LOW);
     gpio_set_level(AUDIO_EN_PIN, LOW);
-
-    uart_config_t uart_structure;
-    uart_structure.baud_rate = 9600;
-    uart_structure.data_bits = UART_DATA_8_BITS;
-    uart_structure.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
-    uart_structure.parity = UART_PARITY_DISABLE;
-    uart_structure.source_clk = UART_SCLK_DEFAULT;
-    uart_structure.stop_bits = UART_STOP_BITS_1;
-    uart_structure.rx_flow_ctrl_thresh = 0;
-    uart_driver_install(UART_NUM_1, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0);
-    uart_param_config(UART_NUM_1, &uart_structure);
-    uart_set_pin(UART_NUM_1, AUDIO_TX_PIN, AUDIO_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 }

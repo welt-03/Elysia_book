@@ -1,5 +1,7 @@
 #include "audio.h"
 
+static const char *LOG_TAG = "audio";
+
 Audio::Audio()
 {
     _port = UART_NUM_1;
@@ -20,6 +22,19 @@ Audio::~Audio()
 void Audio::init()
 {
     _volume = 30;
+
+    uart_config_t uart_structure;
+    uart_structure.baud_rate = 9600;
+    uart_structure.data_bits = UART_DATA_8_BITS;
+    uart_structure.flow_ctrl = UART_HW_FLOWCTRL_DISABLE;
+    uart_structure.parity = UART_PARITY_DISABLE;
+    uart_structure.source_clk = UART_SCLK_DEFAULT;
+    uart_structure.stop_bits = UART_STOP_BITS_1;
+    // uart_structure.rx_flow_ctrl_thresh = 0;
+    uart_driver_install(UART_NUM_1, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0);
+    uart_param_config(UART_NUM_1, &uart_structure);
+    uart_set_pin(UART_NUM_1, AUDIO_TX_PIN, AUDIO_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+
     this->write(toSDcard_cmd);
     this->write(volumeSet_cmd);
     this->write(singlePlay_cmd);
@@ -97,9 +112,7 @@ void Audio::pathPlay(const char *path) const
     cmd[3] = 0x01;
 
     for (size_t i = 0; i < length; i++)
-    {
         cmd[i + 4] = path[i];
-    }
 
     cmd[length + 4] = getADD8Check(cmd, length + 4);
 

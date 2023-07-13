@@ -1,13 +1,13 @@
 
 set(scrs
         "."
-        "book_init/book_init.c"
+        "book/book_config.c"
         "audio/audio.cpp"
 )
 
 set(include_dirs
         "."
-        "book_init"
+        "book"
         "audio"
 )
 

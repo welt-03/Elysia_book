@@ -1,11 +1,22 @@
-#ifndef _BOOK_INIT_H
-#define _BOOK_INIT_H
+/**
+ * @file book_init.h
+ * @author welt-03
+ * @brief
+ * @version 0.1
+ * @date 2023-07-13
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
+#pragma once
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#include "esp_log.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "driver/dac.h"
@@ -42,6 +53,4 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
