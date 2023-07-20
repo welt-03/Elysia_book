@@ -108,13 +108,18 @@ void Audio::pathPlay(const char *path) const
 
     cmd[0] = 0xAA;
     cmd[1] = 0x08;
-    cmd[2] = 0x04;
+    cmd[2] = length + 1;
     cmd[3] = 0x01;
 
     for (size_t i = 0; i < length; i++)
         cmd[i + 4] = path[i];
 
     cmd[length + 4] = getADD8Check(cmd, length + 4);
+
+    for (auto &&i : cmd)
+    {
+        printf("0x%02x ", i);
+    }
 
     this->write(cmd);
 }
