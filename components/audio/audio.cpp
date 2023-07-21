@@ -30,14 +30,13 @@ void Audio::init()
     uart_structure.parity = UART_PARITY_DISABLE;
     uart_structure.source_clk = UART_SCLK_DEFAULT;
     uart_structure.stop_bits = UART_STOP_BITS_1;
-    // uart_structure.rx_flow_ctrl_thresh = 0;
     uart_driver_install(UART_NUM_1, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0);
     uart_param_config(UART_NUM_1, &uart_structure);
     uart_set_pin(UART_NUM_1, AUDIO_TX_PIN, AUDIO_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
     this->write(toSDcard_cmd);
     this->write(volumeSet_cmd);
-    this->write(singlePlay_cmd);
+    this->write(loopPlay_cmd);
     ESP_LOGI(LOG_TAG, "Initialization complete.");
 }
 /**
@@ -116,10 +115,10 @@ void Audio::pathPlay(const char *path) const
 
     cmd[length + 4] = getADD8Check(cmd, length + 4);
 
-    for (auto &&i : cmd)
-    {
-        printf("0x%02x ", i);
-    }
+    // for (auto &&i : cmd)
+    //{
+    //     printf("0x%02x ", i);
+    // }
 
     this->write(cmd);
 }
@@ -151,7 +150,13 @@ void Audio::previous() const
 // 设定音量
 void Audio::setVolume(uint8_t volume)
 {
+    uint8_t cmd[] = {0xAA, 0x13, 0x01, 0x00, 0x00};
     _volume = volume;
+
+    cmd[3] = _volume;
+    cmd[4] = getADD8Check(cmd, 4);
+
+    this->write(cmd);
 }
 // 获取音量
 uint8_t Audio::getVolume() const
@@ -163,6 +168,7 @@ uint8_t Audio::improveVolume()
 {
     if (_volume < 30)
         _volume++;
+    this->setVolume(_volume);
     return _volume;
 }
 // 减小音量
