@@ -9,12 +9,14 @@
 #include "freertos/task.h"
 #include "book_config.h"
 #include "audio.h"
+#include "peripheral.h"
 
 const char *LOG_TAG = "main";
 
 uint8_t usb_mode = 0;
 
 Audio audio(UART_NUM_1);
+UART Serial;
 
 void usb_toggle_handler(void *parameter)
 {
@@ -85,18 +87,31 @@ void IRAM_ATTR usbToggleIntrHandler(void *arg)
 	xTaskCreate(usb_toggle_handler, "USB_Task", 2048, NULL, 1, NULL);
 }
 
+void uart_data_handler(void *parameter)
+{
+	while (true)
+	{
+		if (Serial.read())
+		{
+			Serial.write(Serial.payload);
+			ESP_LOGI(LOG_TAG, "数据已发送");
+		}
+		vTaskDelay(100);
+	}
+}
+
 extern "C" void app_main(void)
 {
 	book_init();
 	audio.init();
+	Serial.begin(115200);
 
 	xTaskCreate(usb_toggle_handler, "USB_Task", 2048, NULL, 1, NULL);
+	xTaskCreate(uart_data_handler, "UART_Task", 2048, NULL, 1, NULL);
 
 	gpio_install_isr_service(0);
 	gpio_isr_handler_add(USB_PIN, usbToggleIntrHandler, NULL);
 	gpio_isr_handler_add(CC_TEST, usbToggleIntrHandler, NULL);
-	// audio.pathPlay("/INSERT*???");
-	audio.start();
 
 	while (true)
 	{
