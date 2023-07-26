@@ -19,7 +19,7 @@ Audio::~Audio()
  * @brief Audio 初始化
  *
  */
-void Audio::begin(int baud_rate, int uart_tx_pin, int uart_rx_pin)
+void Audio::begin(QueueHandle_t *uart_queue, int baud_rate, int uart_tx_pin, int uart_rx_pin)
 {
     _volume = 30;
 
@@ -37,7 +37,7 @@ void Audio::begin(int baud_rate, int uart_tx_pin, int uart_rx_pin)
     {
         uart_set_pin(_uart_port, uart_tx_pin, uart_rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     }
-    uart_driver_install(_uart_port, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, 0);
+    uart_driver_install(_uart_port, BUF_SIZE * 2, BUF_SIZE * 2, 10, uart_queue, 0);
 
     write(toSDcard_cmd, 5);
     vTaskDelay(10);

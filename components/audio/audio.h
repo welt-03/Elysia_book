@@ -36,7 +36,7 @@ public:
     Audio(uart_port_t uart_port);
     ~Audio();
 
-    void begin(int baud_rate = 9600, int uart_tx_pin = AUDIO_TX_PIN, int uart_rx_pin = AUDIO_RX_PIN);
+    void begin(QueueHandle_t *uart_queue, int baud_rate = 9600, int uart_tx_pin = AUDIO_TX_PIN, int uart_rx_pin = AUDIO_RX_PIN);
     void write(const void *data, size_t size) const;
     void query(uint8_t object) const;
     void setPalyMode(uint8_t type) const;
