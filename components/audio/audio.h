@@ -3,16 +3,19 @@
 
 #include <stdio.h>
 #include "string.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "book_config.h"
+#include "peripheral.h"
 #include "esp_log.h"
 
 class Audio
 {
 private:
     uint8_t _volume;
-    uart_port_t _port;
+    uart_port_t _uart_port = UART_NUM_1;
 
     const uint8_t fileNameQuery_cmd[4] = {0xAA, 0x1E, 0x00, 0xC8};
     const uint8_t fileNumQuery_cmd[4] = {0xAA, 0x12, 0x00, 0xBC};
@@ -30,11 +33,11 @@ private:
 
 public:
     Audio();
-    Audio(uart_port_t port);
+    Audio(uart_port_t uart_port);
     ~Audio();
 
-    void init();
-    void write(const uint8_t *data) const;
+    void begin(int baud_rate = 9600, int uart_tx_pin = AUDIO_TX_PIN, int uart_rx_pin = AUDIO_RX_PIN);
+    void write(const void *data, size_t size) const;
     void query(uint8_t object) const;
     void setPalyMode(uint8_t type) const;
     void pathPlay(const char *path) const;
