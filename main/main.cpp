@@ -15,13 +15,6 @@
 
 const char *LOG_TAG = "main";
 
-typedef enum
-{
-	USUAL,
-	STANDBY,
-	FORMAL
-} book_state_t;
-
 struct BOOK_INFO
 {
 	uint8_t id;
@@ -40,7 +33,7 @@ void usb_toggle_task(void *parameter)
 
 	for (size_t i = 0; i < 3; i++)
 	{
-		vTaskDelay(50 / portTICK_PERIOD_MS);
+		vTaskDelay(40 / portTICK_PERIOD_MS);
 
 		_usb_mode = gpio_get_level(CC_TEST) << 4;
 		_usb_mode |= gpio_get_level(USB_PIN);
@@ -127,7 +120,11 @@ void uart_event_task(void *pvParameters)
 			{
 			case UART_DATA:
 				uart_read_bytes(UART_NUM_1, data_buf, event.size, portMAX_DELAY);
-				uart_write_bytes(UART_NUM_0, data_buf, event.size);
+				for (size_t i = 0; i < event.size; i++)
+				{
+					printf("%.2x", data_buf[i]);
+				}
+				printf("\n");
 				break;
 			default:
 				ESP_LOGI(LOG_TAG, "uart event type: %d", event.type);
@@ -181,6 +178,11 @@ extern "C" void app_main(void)
 
 	xTaskCreate(usb_toggle_task, "USB_Task", 2048, NULL, 1, NULL);
 	xTaskCreate(uart_event_task, "UART_Task", 2048, NULL, 10, NULL);
+
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+	audio.query(ALL_FILE_NUM);
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+	audio.query(NOW_FILE_NUM);
 
 	gpio_install_isr_service(0);
 	gpio_isr_handler_add(USB_PIN, usb_toggle_intr_handler, NULL);

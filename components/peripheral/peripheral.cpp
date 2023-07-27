@@ -23,15 +23,18 @@ void UART::begin(int baud_rate, QueueHandle_t *uart_queue, int uart_tx_pin, int 
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 0,
-        .source_clk = UART_SCLK_DEFAULT
-    };
+        .source_clk = UART_SCLK_DEFAULT};
+
+    if (uart_queue == NULL)
+        uart_driver_install(_uart_num, 1024 * 2, 1024 * 2, 0, NULL, 0);
+    else
+        uart_driver_install(_uart_num, 1024 * 2, 1024 * 2, 10, uart_queue, 0);
 
     uart_param_config(_uart_num, &uart_config);
     if ((uart_tx_pin != UART_PIN_NO_CHANGE) && (uart_rx_pin != UART_PIN_NO_CHANGE))
     {
         uart_set_pin(_uart_num, uart_tx_pin, uart_rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     }
-    uart_driver_install(_uart_num, 1024 * 2, 1024 * 2, 10, uart_queue, 0);
 }
 
 void UART::write(const void *data)

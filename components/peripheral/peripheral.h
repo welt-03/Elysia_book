@@ -20,7 +20,7 @@ public:
     UART(uart_port_t uart_num);
     ~UART();
 
-    void begin(int baud_rate, QueueHandle_t *uart_queue, int uart_tx_pin = UART_PIN_NO_CHANGE, int uart_rx_pin = UART_PIN_NO_CHANGE);
+    void begin(int baud_rate, QueueHandle_t *uart_queue = NULL, int uart_tx_pin = UART_PIN_NO_CHANGE, int uart_rx_pin = UART_PIN_NO_CHANGE);
     void write(const void *data);
     int read();
 };

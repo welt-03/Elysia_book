@@ -49,6 +49,20 @@ extern "C"
 #define ADC_IN_PIN GPIO_NUM_35
 #define WS2812_PIN GPIO_NUM_5
 
+#define FAN_YE "00*"
+#define DAI_JI "01*"
+#define BIAN_SHENG "02*"
+#define BE_SHA "03*"
+#define ZHU_ZHAN "04*"
+#define TAI_CI "05*"
+
+    typedef enum
+    {
+        USUAL,   // 通常
+        STANDBY, // 待机
+        FORMAL   // 正式
+    } book_state_t;
+
     void book_init();
 
 #ifdef __cplusplus

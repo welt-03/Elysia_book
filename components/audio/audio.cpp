@@ -21,8 +21,6 @@ Audio::~Audio()
  */
 void Audio::begin(QueueHandle_t *uart_queue, int baud_rate, int uart_tx_pin, int uart_rx_pin)
 {
-    _volume = 30;
-
     uart_config_t uart_config = {
         .baud_rate = baud_rate,
         .data_bits = UART_DATA_8_BITS,
@@ -32,12 +30,13 @@ void Audio::begin(QueueHandle_t *uart_queue, int baud_rate, int uart_tx_pin, int
         .rx_flow_ctrl_thresh = 0,
         .source_clk = UART_SCLK_DEFAULT};
 
+    uart_driver_install(_uart_port, BUF_SIZE * 2, BUF_SIZE * 2, 10, uart_queue, 0);
+
     uart_param_config(_uart_port, &uart_config);
     if ((uart_tx_pin != UART_PIN_NO_CHANGE) && (uart_rx_pin != UART_PIN_NO_CHANGE))
     {
         uart_set_pin(_uart_port, uart_tx_pin, uart_rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     }
-    uart_driver_install(_uart_port, BUF_SIZE * 2, BUF_SIZE * 2, 10, uart_queue, 0);
 
     write(toSDcard_cmd, 5);
     vTaskDelay(10);
@@ -80,30 +79,30 @@ uint8_t Audio::getADD8Check(const uint8_t *data, int length) const
  * (1)当前目录文件数量
  * (2)当前文件名
  */
-void Audio::query(uint8_t object) const
+void Audio::query(query_object_t object) const
 {
-    if (object == 0)
-        write(allfileNumQuery_cmd, 4);
-    else if (object == 1)
-        write(fileNumQuery_cmd, 4);
-    else if (object == 2)
-        write(fileNameQuery_cmd, 4);
+    if (object == ALL_FILE_NUM)
+        write(allFileNumQuery_cmd, 4);
+    else if (object == NOW_FILE_NUM)
+        write(nowFileNumQuery_cmd, 4);
+    else if (object == NOW_FILE_NAME)
+        write(nowFileNameQuery_cmd, 4);
 }
 /**
- * @brief 根据type设置播放模式
+ * @brief 根据mode设置播放模式
  *
- * @param type
+ * @param mode
  *(0)单曲播放
  *(1)随机播放
  *(2)循环播放
  */
-void Audio::setPalyMode(uint8_t type) const
+void Audio::setPalyMode(play_mode_t mode) const
 {
-    if (type == 0)
+    if (mode == SINGLE_PLAY)
         write(singlePlay_cmd, 5);
-    else if (type == 1)
+    else if (mode == RANDOM_PLAY)
         write(randomPlay_cmd, 5);
-    else if (type == 2)
+    else if (mode == LOOP_PLAY)
         write(loopPlay_cmd, 5);
 }
 // 路径播放
