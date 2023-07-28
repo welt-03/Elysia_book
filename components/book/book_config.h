@@ -20,6 +20,7 @@ extern "C"
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "driver/dac.h"
+#include "driver/rmt_tx.h"
 
 #define HIGH 1 // 高电平
 #define LOW 0  // 低电平
@@ -56,6 +57,11 @@ extern "C"
 #define ZHU_ZHAN "04*"
 #define TAI_CI "05*"
 
+typedef struct
+{
+    uint8_t gbr[3]; /*颜色序列：green blue red*/
+} rgb_color_t;
+
     typedef enum
     {
         USUAL,   // 通常
@@ -64,6 +70,8 @@ extern "C"
     } book_state_t;
 
     void book_init();
+
+void color_scheme_HSVtoRGB(uint16_t h, uint8_t s, uint8_t v, uint8_t *r, uint8_t *g, uint8_t *b);
 
 #ifdef __cplusplus
 }
