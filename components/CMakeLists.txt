@@ -2,7 +2,6 @@
 set(scrs
         "."
         "book/book_config.c"
-        "audio/audio.cpp"
         "peripheral/peripheral.cpp"
 )
 
@@ -10,7 +9,6 @@ set(scrs
 set(include_dirs
         "."
         "book"
-        "audio"
         "peripheral"
 )
 
