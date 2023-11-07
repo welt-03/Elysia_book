@@ -1,0 +1,16 @@
+{
+  "C_Cpp.intelliSenseEngine": "default",
+  "idf.adapterTargetName": "esp32s3",
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.portWin": "COM10",
+  "idf.flashType": "UART",
+  "C_Cpp.default.compilerPath": "C:\\Espressif\\tools\\xtensa-esp32s3-elf\\esp-12.2.0_20230208\\xtensa-esp32s3-elf\\bin\\xtensa-esp32s3-elf-gcc.exe",
+  "files.associations": {
+    "esp_vfs_fat.h": "c",
+    "sdmmc_types.h": "c",
+    "freertos.h": "c",
+    "portable.h": "c"
+  }
+}

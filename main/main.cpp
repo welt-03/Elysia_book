@@ -1,6 +1,9 @@
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <inttypes.h>
+
 #include "book_config.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
@@ -29,11 +32,11 @@ struct BOOK_INFO {
     book_state_t state;
 } Elysia = {.id = 0, .mode = 0, .state = USUAL};
 
-void gpio_task_handler(void* arg) {
+static void gpio_task_handler(void* arg) {
     uint32_t io_num;
     while (true) {
-        //ESP_LOGI(LOG_TAG, "正在读取gpio中断事件");
         if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
+            ESP_LOGI(LOG_TAG, "GPIO[%" PRIu32 "] intr, val: %d", io_num, gpio_get_level((gpio_num_t)io_num));
             switch (io_num) {
                 case BUTTON_OK:
                     break;
@@ -46,6 +49,7 @@ void gpio_task_handler(void* arg) {
                 case BUTTON_MENU:
                     break;
                 default:
+                    ESP_LOGE(LOG_TAG, "read timeout.");
                     break;
             }
             vTaskDelay(200 / portTICK_PERIOD_MS);
@@ -55,28 +59,34 @@ void gpio_task_handler(void* arg) {
     }
 }
 
-void IRAM_ATTR gpio_isr_handler(void* arg) {
-    xQueueSendFromISR(gpio_evt_queue, (void*)arg, NULL);
+/**
+ * @brief 中断处理函数
+ *
+ * @param arg
+ */
+static void IRAM_ATTR gpio_isr_handler(void* arg) {
+    uint32_t gpio_num = (uint32_t)arg;
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
 }
 
 extern "C" void app_main(void) {
-    gpio_install_isr_service(0);
-
     gpio_config_t io_conf = {
         .pin_bit_mask = BIT64(BUTTON_OK) | BIT64(BUTTON_DW) | BIT64(BUTTON_UP) | BIT64(BUTTON_MENU),
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_NEGEDGE,
+        .intr_type = GPIO_INTR_ANYEDGE,
     };
     gpio_config(&io_conf);
     io_conf.pin_bit_mask = BIT64(LED_GREEN) | BIT64(LED_YELLOW);
     io_conf.mode = GPIO_MODE_OUTPUT;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     gpio_config(&io_conf);
-
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
-    xTaskCreate(gpio_task_handler, "gpio_task", 2048, NULL, 10, NULL);
+    xTaskCreate(gpio_task_handler, "gpio_task", 1024 * 10, NULL, 10, NULL);
+
+    gpio_install_isr_service(0);
+
     gpio_isr_handler_add(BUTTON_DW, gpio_isr_handler, (void*)BUTTON_DW);
     gpio_isr_handler_add(BUTTON_UP, gpio_isr_handler, (void*)BUTTON_UP);
     gpio_isr_handler_add(BUTTON_MENU, gpio_isr_handler, (void*)BUTTON_MENU);
