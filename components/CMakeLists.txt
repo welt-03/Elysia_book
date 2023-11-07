@@ -2,6 +2,7 @@
 set(scrs
         "."
         "book/book_config.c"
+        "disk/disk.c"
         "peripheral/peripheral.cpp"
 )
 
@@ -9,11 +10,12 @@ set(scrs
 set(include_dirs
         "."
         "book"
+        "disk"
         "peripheral"
 )
 
 # 配置组件
 idf_component_register( SRCS "${scrs}"
                         INCLUDE_DIRS "${include_dirs}"
-                        REQUIRES "driver"
+                        REQUIRES "freertos" "driver" "fatfs"
 )

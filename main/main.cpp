@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "book_config.h"
 #include "driver/gpio.h"
@@ -22,7 +22,7 @@
 
 #define BUF_SIZE 1024
 
-#define LOG_TAG "main"
+static const char* TAG = "main";
 
 static QueueHandle_t gpio_evt_queue = NULL;
 
@@ -36,7 +36,7 @@ static void gpio_task_handler(void* arg) {
     uint32_t io_num;
     while (true) {
         if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
-            ESP_LOGI(LOG_TAG, "GPIO[%" PRIu32 "] intr, val: %d", io_num, gpio_get_level((gpio_num_t)io_num));
+            ESP_LOGI(TAG, "GPIO[%" PRIu32 "] intr, val: %d", io_num, gpio_get_level((gpio_num_t)io_num));
             switch (io_num) {
                 case BUTTON_OK:
                     break;
@@ -49,7 +49,7 @@ static void gpio_task_handler(void* arg) {
                 case BUTTON_MENU:
                     break;
                 default:
-                    ESP_LOGE(LOG_TAG, "read timeout.");
+                    ESP_LOGE(TAG, "read timeout.");
                     break;
             }
             vTaskDelay(200 / portTICK_PERIOD_MS);
@@ -83,7 +83,7 @@ extern "C" void app_main(void) {
     io_conf.intr_type = GPIO_INTR_DISABLE;
     gpio_config(&io_conf);
     gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
-    xTaskCreate(gpio_task_handler, "gpio_task", 1024 * 10, NULL, 10, NULL);
+    xTaskCreate(gpio_task_handler, "gpio_task", BUF_SIZE * 2, NULL, 10, NULL);
 
     gpio_install_isr_service(0);
 
@@ -92,7 +92,7 @@ extern "C" void app_main(void) {
     gpio_isr_handler_add(BUTTON_MENU, gpio_isr_handler, (void*)BUTTON_MENU);
     gpio_isr_handler_add(BUTTON_OK, gpio_isr_handler, (void*)BUTTON_OK);
 
-    ESP_LOGI(LOG_TAG, "GPIO isr init complete.");
+    ESP_LOGI(TAG, "GPIO isr init complete.");
 
     while (true) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);

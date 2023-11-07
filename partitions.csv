@@ -6,4 +6,5 @@ phy_init,data,phy,0xf000,0x1000,,
 factory,app,factory,0x10000,2M,,
 ota_0,app,ota_0,,2M,,
 ota_1,app,ota_1,,2M,,
-fat,data,fat,,1M,,
+fat,data,fat,,0x1f0000,,
+# 0x1f0000 = 1984K
