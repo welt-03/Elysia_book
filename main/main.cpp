@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "book_config.h"
+#include "disk.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -93,6 +94,8 @@ extern "C" void app_main(void) {
     gpio_isr_handler_add(BUTTON_OK, gpio_isr_handler, (void*)BUTTON_OK);
 
     ESP_LOGI(TAG, "GPIO isr init complete.");
+
+    virtual_disk_init();
 
     while (true) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);

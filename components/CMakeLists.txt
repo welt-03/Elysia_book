@@ -14,8 +14,15 @@ set(include_dirs
         "peripheral"
 )
 
+# 前置组件
+set(requires
+        freertos
+        driver
+        fatfs
+)
+
 # 配置组件
-idf_component_register( SRCS "${scrs}"
-                        INCLUDE_DIRS "${include_dirs}"
-                        REQUIRES "freertos" "driver" "fatfs"
+idf_component_register( SRCS            ${scrs}
+                        include_dirs    ${include_dirs}
+                        REQUIRES        ${requires}
 )

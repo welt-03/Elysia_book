@@ -16,9 +16,15 @@ void virtual_disk_init(void) {
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
 
-    // 配置SD卡检测并配置对应带宽
+    // 配置SD卡检测并配置引脚
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
 
+    slot_config.clk = SD_CLK;
+    slot_config.cmd = SD_CMD;
+    slot_config.d0 = SD_DATA0;
+    slot_config.d1 = SD_DATA1;
+    slot_config.d2 = SD_DATA2;
+    slot_config.d3 = SD_DATA3;
     slot_config.width = 4;
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
 
@@ -40,4 +46,5 @@ void virtual_disk_init(void) {
     ESP_LOGI(TAG, "File system successfully mounted.");
 
     sdmmc_card_print_info(stdout, sdcard);
+    
 }
