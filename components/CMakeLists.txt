@@ -19,10 +19,15 @@ set(requires
         freertos
         driver
         fatfs
+        console
+        esp_tinyusb
 )
 
 # 配置组件
-idf_component_register( SRCS            ${scrs}
-                        include_dirs    ${include_dirs}
-                        REQUIRES        ${requires}
+idf_component_register(
+    SRCS                ${scrs}         # list the source files of this component
+    INCLUDE_DIRS        ${include_dirs} # optional, add here public include directories
+    PRIV_INCLUDE_DIRS                   # optional, add here private include directories
+    REQUIRES            ${requires}     # optional, list the public requirements (component names)
+    PRIV_REQUIRES                       # optional, list the private requirements
 )
