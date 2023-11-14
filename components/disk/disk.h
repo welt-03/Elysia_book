@@ -2,19 +2,19 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
-#include "freertos/ringbuf.h"
-#include "freertos/task.h"
-
+#include <dirent.h>
 #include "esp_log.h"
+#include "errno.h"
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
 #include "driver/sdmmc_host.h"
+
 #include "tinyusb.h"
 #include "tusb_msc_storage.h"
+#include "diskio_sdmmc.h"
+#include "diskio_impl.h"
 
-#define ROOT_PATH "/sdcard"
+#define BASE_PATH "/sdcard"
 
 #define SD_CLK GPIO_NUM_36
 #define SD_CMD GPIO_NUM_35
@@ -26,7 +26,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void virtual_disk_init(void);
+static void disk_vfs_mount(void);
+static esp_err_t disk_virtual_init(sdmmc_card_t **card);
+static void _mount(void);
 #ifdef __cplusplus
 }
 #endif
