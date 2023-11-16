@@ -19,7 +19,6 @@ set(requires
         freertos
         driver
         fatfs
-        console
         esp_tinyusb
 )
 

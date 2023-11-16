@@ -1,18 +1,14 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stdio.h>
 #include <dirent.h>
-#include "esp_log.h"
 #include "errno.h"
+#include "esp_check.h"
 #include "esp_vfs_fat.h"
-#include "sdmmc_cmd.h"
-#include "driver/sdmmc_host.h"
 
+#include "diskio_impl.h"
+#include "diskio_sdmmc.h"
 #include "tinyusb.h"
 #include "tusb_msc_storage.h"
-#include "diskio_sdmmc.h"
-#include "diskio_impl.h"
 
 #define BASE_PATH "/sdcard"
 
@@ -26,9 +22,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-static void disk_vfs_mount(void);
-static esp_err_t disk_virtual_init(sdmmc_card_t **card);
-static void _mount(void);
+esp_err_t disk_vfs_mount(sdmmc_card_t* card);
+esp_err_t disk_virtual_init(sdmmc_card_t** card);
 #ifdef __cplusplus
 }
 #endif

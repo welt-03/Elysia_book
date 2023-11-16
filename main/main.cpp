@@ -1,5 +1,4 @@
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,9 +70,6 @@ struct BOOK_INFO {
 // }
 
 // callback that is delivered when storage is mounted/unmounted by application.
-static void storage_mount_changed_cb(tinyusb_msc_event_t* event) {
-    ESP_LOGI(TAG, "Storage mounted to application: %s", event->mount_changed_data.is_mounted ? "Yes" : "No");
-}
 
 extern "C" void app_main(void) {
     // gpio_config_t io_conf = {
@@ -98,7 +94,10 @@ extern "C" void app_main(void) {
     // gpio_isr_handler_add(BUTTON_MENU, gpio_isr_handler, (void*)BUTTON_MENU);
     // gpio_isr_handler_add(BUTTON_OK, gpio_isr_handler, (void*)BUTTON_OK);
 
-    // ESP_LOGI(TAG, "GPIO isr init complete.");
+    ESP_LOGI(TAG, "GPIO isr init complete.");
+
+    sdmmc_card_t* card;
+    disk_virtual_init(&card);
 
     while (true) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);

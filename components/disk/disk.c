@@ -2,6 +2,22 @@
 
 static const char* TAG = "disk";
 
+#define EPNUM_MSC 1
+#define TUSB_DESC_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_MSC_DESC_LEN)
+
+enum {
+    ITF_NUM_MSC = 0,
+    ITF_NUM_TOTAL
+};
+
+enum {
+    EDPT_CTRL_OUT = 0x00,
+    EDPT_CTRL_IN = 0x80,
+
+    EDPT_MSC_OUT = 0x01,
+    EDPT_MSC_IN = 0x81,
+};
+
 static uint8_t const desc_configuration[] = {
     // Config number, interface count, string index, total length, attribute, power in mA
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, TUSB_DESC_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
@@ -26,20 +42,26 @@ static tusb_desc_device_t descriptor_config = {
     .iSerialNumber = 0x03,
     .bNumConfigurations = 0x01};
 
+static char const* string_desc_arr[] = {
+    (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
+    "TinyUSB",                   // 1: Manufacturer
+    "TinyUSB Device",            // 2: Product
+    "123456",                    // 3: Serials
+    "Example MSC",               // 4. MSC
+};
+
 /**
  * @brief 对磁盘初始化并挂载文件系统
  *
  */
-static esp_err_t disk_vfs_mount(sdmmc_card_t* sdcard) {
+esp_err_t disk_vfs_mount(sdmmc_card_t* card) {
     esp_err_t ret = ESP_OK;
 
-    ESP_LOGI(TAG, "Initializing SD card.");
+    ESP_LOGI(TAG, "Initializing SD sd_card.");
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = false,
         .max_files = 5,
         .allocation_unit_size = 16 * 1024};
-
-    const char* mount_point = BASE_PATH;
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
@@ -56,20 +78,20 @@ static esp_err_t disk_vfs_mount(sdmmc_card_t* sdcard) {
     slot_config.width = 4;
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
 
-    if (esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &sdcard) != ESP_OK) {
+    if (esp_vfs_fat_sdmmc_mount(BASE_PATH, &host, &slot_config, &mount_config, &card) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount filesystem!");
         return ESP_FAIL;
     }
 
-    sdmmc_card_print_info(stdout, sdcard);
+    sdmmc_card_print_info(stdout, card);
     return ret;
 }
-
-static esp_err_t disk_virtual_init(sdmmc_card_t* sdcard) {
+esp_err_t disk_virtual_init(sdmmc_card_t** card) {
     esp_err_t ret = ESP_OK;
     bool host_init = false;
+    sdmmc_card_t* sd_card;
 
-    ESP_LOGI(TAG, "Initializing SDCard");
+    ESP_LOGI(TAG, "Initializing sd_card");
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
@@ -84,27 +106,35 @@ static esp_err_t disk_virtual_init(sdmmc_card_t* sdcard) {
     slot_config.width = 4;
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
 
-    // not using ff_memalloc here, as allocation in internal RAM is preferred
-    sdcard = (sdmmc_card_t*)malloc(sizeof(sdmmc_card_t));
-    ESP_GOTO_ON_FALSE(sdcard, ESP_ERR_NO_MEM, clean, TAG, "could not allocate new sdmmc_card_t");
-
+    sd_card = (sdmmc_card_t*)malloc(sizeof(sdmmc_card_t));
+    ESP_GOTO_ON_FALSE(sd_card, ESP_ERR_NO_MEM, clean, TAG, "could not allocate new sdmmc_card_t");
     ESP_GOTO_ON_ERROR((*host.init)(), clean, TAG, "Host Config Init fail");
+
     host_init = true;
 
     ESP_GOTO_ON_ERROR(sdmmc_host_init_slot(host.slot, (const sdmmc_slot_config_t*)&slot_config),
                       clean, TAG, "Host init slot fail");
 
-    while (sdmmc_card_init(&host, sdcard)) {
-        ESP_LOGE(TAG, "The detection pin of the slot is disconnected(Insert uSD card). Retrying...");
+    while (sdmmc_card_init(&host, sd_card)) {
+        ESP_LOGE(TAG, "The detection pin of the slot is disconnected(Insert uSD sd_card). Retrying...");
         vTaskDelay(pdMS_TO_TICKS(3000));
     }
 
-    // Card has been initialized, print its properties
-    sdmmc_card_print_info(stdout, sdcard);
+    // sd_card has been initialized, print its properties
+    sdmmc_card_print_info(stdout, sd_card);
+    *card = sd_card;
 
     ret = tinyusb_msc_storage_mount(BASE_PATH);
 
-    return ret;
+    const tinyusb_config_t tusb_cfg = {
+        .device_descriptor = &descriptor_config,
+        .string_descriptor = string_desc_arr,
+        .string_descriptor_count = sizeof(string_desc_arr) / sizeof(string_desc_arr[0]),
+        .external_phy = false,
+        .configuration_descriptor = desc_configuration,
+    };
+    ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
+    ESP_LOGI(TAG, "USB MSC initialization DONE");
 
 clean:
     if (host_init) {
@@ -113,6 +143,10 @@ clean:
         } else {
             (*host.deinit)();
         }
+    }
+    if (sd_card) {
+        free(sd_card);
+        sd_card = NULL;
     }
     return ret;
 }
