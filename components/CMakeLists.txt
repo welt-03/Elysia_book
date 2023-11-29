@@ -4,6 +4,12 @@ set(scrs
         "book/book_config.c"
         "disk/disk.c"
         "peripheral/peripheral.cpp"
+        "lvgl/src/."
+        "esp_lvgl_port/."
+        "display_driver/."
+        "display_driver/lvgl_tft/."
+        "display_driver/lvgl_touch/."
+        "display_driver/lvgl_i2c/."
 )
 
 # 头文件夹
@@ -12,6 +18,9 @@ set(include_dirs
         "book"
         "disk"
         "peripheral"
+        "lvgl"
+        "esp_lvgl_port"
+        "display_driver"
 )
 
 # 前置组件

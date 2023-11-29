@@ -4,6 +4,7 @@
 #include "errno.h"
 #include "esp_check.h"
 #include "esp_vfs_fat.h"
+#include "driver/gpio.h"
 
 #include "diskio_impl.h"
 #include "diskio_sdmmc.h"
@@ -23,7 +24,8 @@
 extern "C" {
 #endif
 esp_err_t disk_vfs_mount(sdmmc_card_t* card);
-esp_err_t disk_virtual_init(sdmmc_card_t** card);
+esp_err_t disk_virtual_init(sdmmc_card_t* sd_card);
+esp_err_t init_fat(sdmmc_card_t** card_handle, const char* base_path);
 #ifdef __cplusplus
 }
 #endif

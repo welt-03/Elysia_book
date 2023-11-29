@@ -7,7 +7,7 @@ static const char* TAG = "disk";
 
 enum {
     ITF_NUM_MSC = 0,
-    ITF_NUM_TOTAL
+    ITF_NUM_TOTAL,
 };
 
 enum {
@@ -86,10 +86,64 @@ esp_err_t disk_vfs_mount(sdmmc_card_t* card) {
     sdmmc_card_print_info(stdout, card);
     return ret;
 }
-esp_err_t disk_virtual_init(sdmmc_card_t** card) {
+
+esp_err_t init_fat(sdmmc_card_t** card_handle, const char* base_path) {
+    ESP_LOGI(TAG, "Mounting FAT filesystem");
+    esp_err_t ret = ESP_FAIL;
+    sdmmc_card_t* card;
+    ESP_LOGI(TAG, "using external sdcard");
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024};
+    ESP_LOGI(TAG, "Using SDIO Interface");
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
+
+    // This initializes the slot without card detect (CD) and write protect (WP) signals.
+    // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    slot_config.clk = SD_CLK;
+    slot_config.cmd = SD_CMD;
+    slot_config.d0 = SD_DATA0;
+    slot_config.d1 = SD_DATA1;
+    slot_config.d2 = SD_DATA2;
+    slot_config.d3 = SD_DATA3;
+    slot_config.width = 4;
+
+    ret = esp_vfs_fat_sdmmc_mount(base_path, &host, &slot_config, &mount_config, &card);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG,
+                     "Failed to mount filesystem. "
+                     "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+        } else {
+            ESP_LOGE(TAG,
+                     "Failed to initialize the card (%s). "
+                     "Make sure SD card lines have pull-up resistors in place.",
+                     esp_err_to_name(ret));
+        }
+        return ret;
+    }
+
+    // Card has been initialized, print its properties
+    sdmmc_card_print_info(stdout, card);
+
+    if (card_handle) {
+        *card_handle = card;
+    }
+
+    const tinyusb_config_t tusb_cfg = {NULL};
+
+    ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
+    ESP_LOGI(TAG, "USB MSC initialization DONE");
+    return ESP_OK;
+}
+
+esp_err_t disk_virtual_init(sdmmc_card_t* sd_card) {
     esp_err_t ret = ESP_OK;
     bool host_init = false;
-    sdmmc_card_t* sd_card;
 
     ESP_LOGI(TAG, "Initializing sd_card");
 
@@ -106,7 +160,6 @@ esp_err_t disk_virtual_init(sdmmc_card_t** card) {
     slot_config.width = 4;
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
 
-    sd_card = (sdmmc_card_t*)malloc(sizeof(sdmmc_card_t));
     ESP_GOTO_ON_FALSE(sd_card, ESP_ERR_NO_MEM, clean, TAG, "could not allocate new sdmmc_card_t");
     ESP_GOTO_ON_ERROR((*host.init)(), clean, TAG, "Host Config Init fail");
 
@@ -122,9 +175,13 @@ esp_err_t disk_virtual_init(sdmmc_card_t** card) {
 
     // sd_card has been initialized, print its properties
     sdmmc_card_print_info(stdout, sd_card);
-    *card = sd_card;
 
-    ret = tinyusb_msc_storage_mount(BASE_PATH);
+    tinyusb_msc_sdmmc_config_t config_sdmmc = {
+        .card = sd_card};
+
+    ESP_ERROR_CHECK(tinyusb_msc_storage_init_sdmmc(&config_sdmmc));
+
+    ESP_ERROR_CHECK(tinyusb_msc_storage_mount(BASE_PATH));
 
     const tinyusb_config_t tusb_cfg = {
         .device_descriptor = &descriptor_config,
@@ -143,10 +200,6 @@ clean:
         } else {
             (*host.deinit)();
         }
-    }
-    if (sd_card) {
-        free(sd_card);
-        sd_card = NULL;
     }
     return ret;
 }
